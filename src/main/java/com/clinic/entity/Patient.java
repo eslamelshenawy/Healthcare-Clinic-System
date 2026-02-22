@@ -12,6 +12,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -62,6 +63,9 @@ public class Patient {
     @Column(nullable = false)
     @Builder.Default
     private boolean deleted = false;
+
+    @Version
+    private Long version;
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
