@@ -1,0 +1,24 @@
+spring:
+  application:
+    name: healthcare-clinic
+  profiles:
+    active: dev
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    default-property-inclusion: non_null
+
+server:
+  port: 8080
+
+app:
+  jwt:
+    secret: ${JWT_SECRET:bXktc3VwZXItc2VjcmV0LWtleS1mb3ItaGVhbHRoY2FyZS1jbGluaWMtand0LXRva2VuLWdlbmVyYXRpb24=}
+    expiration-ms: 86400000
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+  api-docs:
+    path: /v3/api-docs

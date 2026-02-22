@@ -1,0 +1,833 @@
+{
+	"info": {
+		"name": "Healthcare Clinic API",
+		"description": "Complete API collection for Healthcare Clinic System.\n\n**How to use:**\n1. Run \"Login\" request first — token is saved automatically.\n2. All other requests use the token from the variable.\n3. Run requests in order: Login → Register Patient → Get Doctors → Schedule Appointment → etc.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080/api/v1"
+		},
+		{
+			"key": "token",
+			"value": ""
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{token}}",
+				"type": "string"
+			}
+		]
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.accessToken) {",
+									"    pm.collectionVariables.set('token', jsonData.accessToken);",
+									"    pm.test('Token saved successfully', function () {",
+									"        pm.expect(jsonData.accessToken).to.be.a('string');",
+									"    });",
+									"}",
+									"",
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has accessToken', function () {",
+									"    pm.expect(jsonData).to.have.property('accessToken');",
+									"});",
+									"",
+									"pm.test('Token type is Bearer', function () {",
+									"    pm.expect(jsonData.tokenType).to.eql('Bearer');",
+									"});",
+									"",
+									"pm.test('Username is admin', function () {",
+									"    pm.expect(jsonData.username).to.eql('admin');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"admin\",\n    \"password\": \"admin123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "login"]
+						},
+						"description": "Login with admin credentials. The token is automatically saved to the collection variable."
+					},
+					"response": []
+				},
+				{
+					"name": "Login - Invalid Credentials",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 401', function () {",
+									"    pm.response.to.have.status(401);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"admin\",\n    \"password\": \"wrongpassword\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "login"]
+						},
+						"description": "Attempt login with wrong password — should return 401."
+					},
+					"response": []
+				},
+				{
+					"name": "Logout",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 204', function () {",
+									"    pm.response.to.have.status(204);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/auth/logout",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "logout"]
+						},
+						"description": "Logout and invalidate the current JWT token. After this, the token cannot be used again."
+					},
+					"response": []
+				}
+			],
+			"description": "Login and Logout endpoints with JWT token management."
+		},
+		{
+			"name": "Patients",
+			"item": [
+				{
+					"name": "Register Patient",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 201', function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"",
+									"pm.test('Patient has ID', function () {",
+									"    pm.expect(jsonData).to.have.property('id');",
+									"});",
+									"",
+									"pm.test('Email matches', function () {",
+									"    pm.expect(jsonData.email).to.eql('ahmed@example.com');",
+									"});",
+									"",
+									"pm.test('Has both English and Arabic names', function () {",
+									"    pm.expect(jsonData.fullNameEn).to.be.a('string');",
+									"    pm.expect(jsonData.fullNameAr).to.be.a('string');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"fullNameEn\": \"Ahmed Ali\",\n    \"fullNameAr\": \"أحمد علي\",\n    \"email\": \"ahmed@example.com\",\n    \"mobileNumber\": \"+96512345678\",\n    \"dateOfBirth\": \"1990-05-15\",\n    \"nationalId\": \"12345678\",\n    \"street\": \"Main Street\",\n    \"city\": \"Kuwait City\",\n    \"region\": \"Capital\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/patients",
+							"host": ["{{baseUrl}}"],
+							"path": ["patients"]
+						},
+						"description": "Register a new patient with full details including English and Arabic names."
+					},
+					"response": []
+				},
+				{
+					"name": "Register Patient - Validation Error",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 400', function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"",
+									"pm.test('Has validation errors', function () {",
+									"    pm.expect(jsonData).to.have.property('validationErrors');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"fullNameEn\": \"\",\n    \"fullNameAr\": \"\",\n    \"email\": \"invalid-email\",\n    \"mobileNumber\": \"abc\",\n    \"dateOfBirth\": \"2030-01-01\",\n    \"nationalId\": \"\",\n    \"street\": \"\",\n    \"city\": \"\",\n    \"region\": \"\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/patients",
+							"host": ["{{baseUrl}}"],
+							"path": ["patients"]
+						},
+						"description": "Send invalid data to test input validation. Should return 400 with detailed validation errors."
+					},
+					"response": []
+				},
+				{
+					"name": "Register Patient - Duplicate Email",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 409', function () {",
+									"    pm.response.to.have.status(409);",
+									"});",
+									"",
+									"pm.test('Error message mentions duplicate', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.message).to.include('already exists');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"fullNameEn\": \"Another Person\",\n    \"fullNameAr\": \"شخص آخر\",\n    \"email\": \"ahmed@example.com\",\n    \"mobileNumber\": \"+96599999999\",\n    \"dateOfBirth\": \"1985-03-20\",\n    \"nationalId\": \"99999999\",\n    \"street\": \"Other St\",\n    \"city\": \"Hawalli\",\n    \"region\": \"Hawalli\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/patients",
+							"host": ["{{baseUrl}}"],
+							"path": ["patients"]
+						},
+						"description": "Attempt to register a patient with an email that already exists. Should return 409 Conflict."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Patient by ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Patient has correct structure', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('id');",
+									"    pm.expect(jsonData).to.have.property('fullNameEn');",
+									"    pm.expect(jsonData).to.have.property('email');",
+									"    pm.expect(jsonData).to.have.property('nationalId');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/patients/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["patients", "1"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Patients with Appointments (Paginated)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"",
+									"pm.test('Response is paginated', function () {",
+									"    pm.expect(jsonData).to.have.property('content');",
+									"    pm.expect(jsonData).to.have.property('pageNumber');",
+									"    pm.expect(jsonData).to.have.property('totalElements');",
+									"    pm.expect(jsonData).to.have.property('totalPages');",
+									"});",
+									"",
+									"pm.test('Patients have appointments array', function () {",
+									"    if (jsonData.content.length > 0) {",
+									"        pm.expect(jsonData.content[0]).to.have.property('appointments');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/patients?page=0&size=10&sortBy=id&sortDir=asc",
+							"host": ["{{baseUrl}}"],
+							"path": ["patients"],
+							"query": [
+								{ "key": "page", "value": "0" },
+								{ "key": "size", "value": "10" },
+								{ "key": "sortBy", "value": "id" },
+								{ "key": "sortDir", "value": "asc" }
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Soft Delete Patient",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 204', function () {",
+									"    pm.response.to.have.status(204);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/patients/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["patients", "1"]
+						},
+						"description": "Soft delete a patient. The patient will no longer appear in queries but remains in the database."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Deleted Patient (Should Return 404)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 404', function () {",
+									"    pm.response.to.have.status(404);",
+									"});",
+									"",
+									"pm.test('Error message says not found', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.message).to.include('not found');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/patients/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["patients", "1"]
+						},
+						"description": "Try to get a soft-deleted patient — should return 404."
+					},
+					"response": []
+				}
+			],
+			"description": "Patient registration, retrieval, listing with appointments, and soft delete."
+		},
+		{
+			"name": "Doctors",
+			"item": [
+				{
+					"name": "Get All Doctors",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Returns array of doctors', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.be.an('array');",
+									"    pm.expect(jsonData.length).to.be.greaterThan(0);",
+									"});",
+									"",
+									"pm.test('Doctor has required fields', function () {",
+									"    var doctor = pm.response.json()[0];",
+									"    pm.expect(doctor).to.have.property('id');",
+									"    pm.expect(doctor).to.have.property('nameEn');",
+									"    pm.expect(doctor).to.have.property('nameAr');",
+									"    pm.expect(doctor).to.have.property('specialty');",
+									"    pm.expect(doctor).to.have.property('yearsOfExperience');",
+									"    pm.expect(doctor).to.have.property('consultationDurationMinutes');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/doctors",
+							"host": ["{{baseUrl}}"],
+							"path": ["doctors"]
+						},
+						"description": "Get all doctors. No authentication required."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Doctor by ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Doctor ID matches', function () {",
+									"    pm.expect(pm.response.json().id).to.eql(1);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/doctors/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["doctors", "1"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Doctors by Specialty",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('All doctors are cardiologists', function () {",
+									"    var jsonData = pm.response.json();",
+									"    jsonData.forEach(function(doctor) {",
+									"        pm.expect(doctor.specialty).to.eql('CARDIOLOGY');",
+									"    });",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/doctors/specialty/CARDIOLOGY",
+							"host": ["{{baseUrl}}"],
+							"path": ["doctors", "specialty", "CARDIOLOGY"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Search Doctors by Name",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Results contain search term', function () {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.length > 0) {",
+									"        pm.expect(jsonData[0].nameEn.toLowerCase()).to.include('ahmed');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/doctors/search?name=Ahmed",
+							"host": ["{{baseUrl}}"],
+							"path": ["doctors", "search"],
+							"query": [
+								{ "key": "name", "value": "Ahmed" }
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Doctor Not Found",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 404', function () {",
+									"    pm.response.to.have.status(404);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/doctors/999",
+							"host": ["{{baseUrl}}"],
+							"path": ["doctors", "999"]
+						},
+						"description": "Request a doctor that does not exist — should return 404."
+					},
+					"response": []
+				}
+			],
+			"description": "Doctor lookup, search by name, and filter by specialty. No authentication required."
+		},
+		{
+			"name": "Appointments",
+			"item": [
+				{
+					"name": "Schedule Appointment",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 201', function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"",
+									"pm.test('Appointment has ID', function () {",
+									"    pm.expect(jsonData).to.have.property('id');",
+									"});",
+									"",
+									"pm.test('Status is SCHEDULED', function () {",
+									"    pm.expect(jsonData.status).to.eql('SCHEDULED');",
+									"});",
+									"",
+									"pm.test('Has patient and doctor info', function () {",
+									"    pm.expect(jsonData).to.have.property('patientName');",
+									"    pm.expect(jsonData).to.have.property('doctorName');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"patientId\": 1,\n    \"doctorId\": 1,\n    \"appointmentDateTime\": \"2026-03-15T10:00:00\",\n    \"reason\": \"General checkup\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/appointments",
+							"host": ["{{baseUrl}}"],
+							"path": ["appointments"]
+						},
+						"description": "Schedule a new appointment. Note: Run 'Register Patient' first so patient ID 1 exists."
+					},
+					"response": []
+				},
+				{
+					"name": "Schedule Appointment - Time Conflict",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 409', function () {",
+									"    pm.response.to.have.status(409);",
+									"});",
+									"",
+									"pm.test('Error mentions conflict', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.message).to.include('overlaps');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"patientId\": 1,\n    \"doctorId\": 1,\n    \"appointmentDateTime\": \"2026-03-15T10:15:00\",\n    \"reason\": \"Another appointment at same time\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/appointments",
+							"host": ["{{baseUrl}}"],
+							"path": ["appointments"]
+						},
+						"description": "Try to book the same doctor at an overlapping time — should return 409 Conflict."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Appointment by ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Appointment has correct ID', function () {",
+									"    pm.expect(pm.response.json().id).to.eql(1);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/appointments/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["appointments", "1"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Appointment",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"",
+									"pm.test('Status updated to CONFIRMED', function () {",
+									"    pm.expect(jsonData.status).to.eql('CONFIRMED');",
+									"});",
+									"",
+									"pm.test('Reason updated', function () {",
+									"    pm.expect(jsonData.reason).to.eql('Confirmed by receptionist');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"CONFIRMED\",\n    \"reason\": \"Confirmed by receptionist\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/appointments/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["appointments", "1"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Appointments by Patient",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Returns array', function () {",
+									"    pm.expect(pm.response.json()).to.be.an('array');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/appointments/patient/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["appointments", "patient", "1"]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "Appointment scheduling, retrieval, update, and conflict detection."
+		}
+	]
+}
