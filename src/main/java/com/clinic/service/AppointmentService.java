@@ -46,7 +46,8 @@ public class AppointmentService {
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Patient", "id", request.patientId()));
 
-        Doctor doctor = doctorRepository.findById(request.doctorId())
+        // Lock the doctor row to prevent concurrent bookings for the same doctor
+        Doctor doctor = doctorRepository.findByIdWithLock(request.doctorId())
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Doctor", "id", request.doctorId()));
 

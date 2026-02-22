@@ -68,7 +68,7 @@ class AppointmentServiceTest {
                 1L, 1L, futureDateTime, "Checkup");
 
         when(patientRepository.findById(1L)).thenReturn(Optional.of(patient));
-        when(doctorRepository.findById(1L)).thenReturn(Optional.of(doctor));
+        when(doctorRepository.findByIdWithLock(1L)).thenReturn(Optional.of(doctor));
         when(appointmentRepository.findConflictingAppointments(eq(1L), any(), any()))
                 .thenReturn(Collections.emptyList());
 
@@ -98,7 +98,7 @@ class AppointmentServiceTest {
                 1L, 1L, futureDateTime, "Checkup");
 
         when(patientRepository.findById(1L)).thenReturn(Optional.of(patient));
-        when(doctorRepository.findById(1L)).thenReturn(Optional.of(doctor));
+        when(doctorRepository.findByIdWithLock(1L)).thenReturn(Optional.of(doctor));
         when(appointmentRepository.findConflictingAppointments(eq(1L), any(), any()))
                 .thenReturn(List.of(Appointment.builder().id(99L).build()));
 
@@ -125,7 +125,7 @@ class AppointmentServiceTest {
                 1L, 99L, futureDateTime, "Checkup");
 
         when(patientRepository.findById(1L)).thenReturn(Optional.of(patient));
-        when(doctorRepository.findById(99L)).thenReturn(Optional.empty());
+        when(doctorRepository.findByIdWithLock(99L)).thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class,
                 () -> appointmentService.scheduleAppointment(request));
